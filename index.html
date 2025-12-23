@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Luxury Tree - Ultimate Performance</title>
+    <title>Luxury Tree - DIY Edition</title>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;800&family=Ma+Shan+Zheng&display=swap');
@@ -69,23 +69,7 @@
             }
         }
 
-        #top-right-controls {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            z-index: 30;
-            display: flex;
-            flex-direction: row;
-            gap: 15px;
-            pointer-events: auto;
-        }
-
-        .control-col {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
+        /* --- 按钮样式 --- */
         .control-btn {
             background: rgba(10, 10, 10, 0.6);
             border: 1px solid rgba(212, 175, 55, 0.4);
@@ -99,6 +83,8 @@
             cursor: pointer;
             backdrop-filter: blur(5px);
             transition: all 0.3s ease;
+            pointer-events: auto;
+            /* 确保按钮可点击 */
         }
 
         .control-btn:hover {
@@ -122,6 +108,71 @@
             color: #666;
             border-color: #444;
             pointer-events: none;
+        }
+
+        /* --- 右上角常驻区域 (仅全屏按钮) --- */
+        #persistent-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 30;
+            display: flex;
+            pointer-events: auto;
+        }
+
+        /* --- 隐藏的可折叠菜单区域 --- */
+        #collapsible-controls {
+            position: absolute;
+            top: 60px;
+            /* 在全屏按钮下方 */
+            right: 20px;
+            z-index: 30;
+            display: none;
+            /* 默认隐藏 */
+            flex-direction: row;
+            gap: 15px;
+            pointer-events: auto;
+            /* 增加一点背景板，让按钮群更清晰 */
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .control-col {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* --- 右下角 DIY 切换按钮 --- */
+        #diy-toggle-wrapper {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            z-index: 40;
+            pointer-events: auto;
+        }
+
+        #btn-diy-toggle {
+            border-color: #fff;
+            color: #fff;
+            background: rgba(255, 255, 255, 0.1);
+            width: 120px;
         }
 
         #bottom-theme-controls {
@@ -330,6 +381,23 @@
             opacity: 0.8;
             transition: opacity 0.5s;
         }
+
+        #error-toast {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 50, 50, 0.9);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 14px;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            border: 1px solid #ffaaaa;
+            text-align: center;
+        }
     </style>
 
     <script type="importmap">
@@ -349,9 +417,13 @@
     </div>
     <div id="canvas-container"></div>
 
+    <!-- 错误提示条 -->
+    <div id="error-toast"></div>
+
     <div id="ui-layer">
         <div id="interaction-hint">左键拖拽旋转 · 右键单击浏览照片 · 右键双击打开信件</div>
 
+        <!-- 底部主题切换 (保持显示) -->
         <div id="bottom-theme-controls">
             <div class="theme-circle-btn" style="background: linear-gradient(135deg, #ffd700, #967117);"
                 onclick="window.manualSwitchTheme(0)" title="Classic Gold"></div>
@@ -361,7 +433,13 @@
                 onclick="window.manualSwitchTheme(2)" title="Barbie Pink"></div>
         </div>
 
-        <div id="top-right-controls">
+        <!-- 1. 常驻按钮区：仅保留全屏显示 -->
+        <div id="persistent-controls">
+            <button id="btn-fullscreen" class="control-btn">全屏显示</button>
+        </div>
+
+        <!-- 2. 可隐藏的 DIY 面板 -->
+        <div id="collapsible-controls">
             <div class="control-col" id="col-media">
                 <button id="btn-webcam-toggle" class="control-btn"
                     style="border-color: #ff5555; color: #ff9999;">开启摄像头</button>
@@ -379,14 +457,20 @@
                 <button id="btn-set-title" class="control-btn">设置标题</button>
                 <button id="btn-import" class="control-btn">导入网页</button>
                 <button id="btn-export" class="control-btn">导出网页</button>
-                <button id="btn-fullscreen" class="control-btn">全屏显示</button>
             </div>
         </div>
+
+        <!-- 3. 右下角 DIY 切换按钮 -->
+        <div id="diy-toggle-wrapper">
+            <button id="btn-diy-toggle" class="control-btn">DIY 设置</button>
+        </div>
+
         <input type="file" id="file-input" multiple accept="image/*">
         <input type="file" id="music-input" accept="audio/mp3,audio/*">
         <input type="file" id="import-input" accept=".json">
     </div>
 
+    <!-- Letter DOM elements ... -->
     <div id="letter-editor-modal">
         <h3>撰写你的心意</h3>
         <textarea id="letter-text-input" placeholder="在这里写下你想说的话..."></textarea>
@@ -437,8 +521,8 @@
                 './img/2.jpg',
                 './img/3.jpg',
                 './img/11.jpg',
-                './img/33.jpg',
-                './img/22.jpg'
+                './img/22.jpg',
+                './img/33.jpg'
             ]
         };
 
@@ -458,7 +542,7 @@
             rotation: { x: 0.15, y: 0 }, spinVel: { x: 0, y: 0 }, time: 0,
             wasPointing: false, palmCenter: { x: 0.5, y: 0.5 }, hasPalmCenter: false,
             starMesh: null, starHaloMesh: null,
-            letterContent: "",
+            letterContent: "", // 默认内容将由 loadDefaultLetter 填充
             letterTyper: null, letterStartTimer: null, letterLastTriggerTime: 0,
             musicData: null,
             titleText: "MERRY CHRISTMAS",
@@ -485,11 +569,9 @@
         const _targetQ = new THREE.Quaternion();
         const _dummy = new THREE.Object3D();
 
-        // 右键交互变量
         let rightClickTimer = null;
         let lastRightClickTime = 0;
 
-        // GPU Shader for Background Particles
         const bgVertexShader = `
             uniform float uTime;
             uniform float uHeight;
@@ -498,7 +580,6 @@
             attribute vec3 aVelocity;
             attribute vec3 aRandom;
             varying float vAlpha;
-            
             void main() {
                 vec3 pos = position;
                 float fallOffset = uTime * uSpeed * aVelocity.y;
@@ -543,8 +624,8 @@
 
             switchTheme(0);
 
-            // 尝试加载预设图片
             loadDefaultImages();
+            loadDefaultLetter(); // 新增：加载默认信件
 
             const loader = document.getElementById('loader');
             loader.style.opacity = 0;
@@ -553,22 +634,55 @@
             animate();
         }
 
-        // 加载默认图片逻辑
+        // --- 加载默认信件 ---
+        function loadDefaultLetter() {
+            fetch('./letter.txt')
+                .then(response => {
+                    if (!response.ok) throw new Error("File not found");
+                    return response.text();
+                })
+                .then(text => {
+                    if (text && text.trim().length > 0) {
+                        STATE.letterContent = text;
+                        console.log("[Success] Loaded letter.txt");
+                    }
+                })
+                .catch(err => {
+                    console.log("[Info] No default letter.txt found (or blocked by CORS). Using manual input.");
+                    // 这里不弹窗报错，因为用户可能本来就想手动写
+                });
+        }
+
         function loadDefaultImages() {
             const loader = new THREE.TextureLoader();
-            CONFIG.preloadImages.forEach(path => {
-                loader.load(
-                    path,
-                    (texture) => {
+            CONFIG.preloadImages.forEach((path, index) => {
+                if (path.length < 50 && path.indexOf('data:') !== 0) {
+                    // 普通路径加载
+                    loader.load(
+                        path,
+                        (texture) => {
+                            texture.colorSpace = THREE.SRGBColorSpace;
+                            addPhotoToScene(texture);
+                            console.log(`[Success] Loaded image: ${path}`);
+                        },
+                        undefined,
+                        (err) => {
+                            console.warn(`[Blocked] Could not load: ${path}. Make sure to run via Live Server.`);
+                            const toast = document.getElementById('error-toast');
+                            if (toast) {
+                                toast.innerHTML = `⚠️ 无法读取本地文件 ${path}<br><span style="font-size:12px">请使用 VS Code Live Server 运行或手动上传</span>`;
+                                toast.style.display = 'block';
+                                setTimeout(() => { toast.style.opacity = 0; setTimeout(() => toast.style.display = 'none', 500); }, 5000);
+                            }
+                        }
+                    );
+                } else {
+                    // Base64 直接加载
+                    loader.load(path, (texture) => {
                         texture.colorSpace = THREE.SRGBColorSpace;
                         addPhotoToScene(texture);
-                        console.log(`[Success] Loaded image: ${path}`);
-                    },
-                    undefined,
-                    (err) => {
-                        console.warn(`[Warning] Failed to load image: ${path}. Please ensure file exists and you are using a local server.`);
-                    }
-                );
+                    });
+                }
             });
         }
 
@@ -1422,6 +1536,17 @@
             document.getElementById('btn-scatter-toggle').onclick = (e) => { e.stopPropagation(); toggleScatterMode(); }
             document.getElementById('btn-open-letter').onclick = (e) => { e.stopPropagation(); if (!STATE.letterContent) { alert("还没有写信哦~ 请先上传书信"); document.getElementById('letter-editor-modal').style.display = 'flex'; document.getElementById('letter-text-input').value = ""; return; } enterLetterMode(); };
             document.getElementById('btn-next-photo').onclick = (e) => { e.stopPropagation(); browseNextPhoto(); };
+
+            // 新增：DIY按钮事件
+            document.getElementById('btn-diy-toggle').onclick = (e) => {
+                e.stopPropagation();
+                const menu = document.getElementById('collapsible-controls');
+                if (menu.style.display === 'flex') {
+                    menu.style.display = 'none';
+                } else {
+                    menu.style.display = 'flex';
+                }
+            };
         }
 
         init();
